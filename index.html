@@ -2,66 +2,61 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🌸 작은 게시판 🌸</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f9f6ff;
+      font-family: 'Arial', sans-serif;
+      background-color: #f7f0fb;
+      color: #333;
+      text-align: center;
       padding: 20px;
     }
     h1 {
-      text-align: center;
-      color: #a874dc;
+      color: #a066c9;
     }
     form {
-      background: #fff;
-      padding: 15px;
+      background: white;
+      padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      max-width: 500px;
-      margin: 0 auto 30px auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+      display: inline-block;
     }
     input, textarea {
-      width: 100%;
+      width: 300px;
       padding: 10px;
-      margin-top: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
       border-radius: 5px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
     }
     button {
-      background-color: #c5a3ff;
+      background: #caa3f4;
       color: white;
+      padding: 10px 20px;
       border: none;
-      padding: 10px 15px;
-      margin-top: 10px;
       border-radius: 5px;
       cursor: pointer;
     }
     .post {
-      background: #fff;
-      border: 1px solid #ddd;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 5px;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .post h3 {
-      margin: 0 0 5px 0;
-      color: #7a55c2;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.05);
+      margin: 10px auto;
+      width: 350px;
     }
   </style>
 </head>
 <body>
   <h1>🌸 작은 게시판 🌸</h1>
+  <p>누구나 글을 남길 수 있는 공간입니다 💜</p>
   <form id="postForm">
-    <input type="text" id="title" placeholder="제목을 입력하세요" required />
-    <textarea id="content" placeholder="무엇이든 적어보세요 📝" rows="4" required></textarea>
+    <input type="text" id="title" placeholder="제목을 입력하세요" required /><br />
+    <textarea id="content" placeholder="무엇이든 적어보세요 💬" required></textarea><br />
     <button type="submit">글 올리기</button>
   </form>
+
   <div id="postList"></div>
 
   <!-- Firebase SDK -->
@@ -69,6 +64,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 
   <script>
+    // Firebase 설정
     const firebaseConfig = {
       apiKey: "AIzaSyCQUVnFm1GC0dJtkoPy-FJW2ACr5myfTU",
       authDomain: "kaaru-board.firebaseapp.com",
@@ -78,45 +74,44 @@
       appId: "1:802939006936:web:b099f320d92e04415e8cad"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    // 초기화
+    const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const postForm = document.getElementById("postForm");
-    const postList = document.getElementById("postList");
+    const postForm = document.getElementById('postForm');
+    const postList = document.getElementById('postList');
 
-    // 글 등록
-    postForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const title = document.getElementById("title").value.trim();
-      const content = document.getElementById("content").value.trim();
-
-      if (title && content) {
-        await db.collection("posts").add({
-          title,
-          content,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    // 게시글 보여주기
+    function loadPosts() {
+      db.collection("posts").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+        postList.innerHTML = "";
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const postDiv = document.createElement("div");
+          postDiv.className = "post";
+          postDiv.innerHTML = `<h3>${data.title}</h3><p>${data.content}</p>`;
+          postList.appendChild(postDiv);
         });
-
-        postForm.reset();
-        loadPosts();
-      }
-    });
-
-    // 글 불러오기
-    async function loadPosts() {
-      postList.innerHTML = "";
-      const snapshot = await db.collection("posts").orderBy("createdAt", "desc").get();
-      snapshot.forEach((doc) => {
-        const post = doc.data();
-        const div = document.createElement("div");
-        div.className = "post";
-        div.innerHTML = `<h3>${post.title}</h3><p>${post.content}</p>`;
-        postList.appendChild(div);
       });
     }
 
-    // 페이지 로드 시 글 불러오기
-    window.addEventListener("load", loadPosts);
+    // 게시글 저장
+    postForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim();
+      if (title && content) {
+        db.collection("posts").add({
+          title: title,
+          content: content,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+          postForm.reset();
+        });
+      }
+    });
+
+    loadPosts(); // 로딩 시 게시글 불러오기
   </script>
 </body>
 </html>
