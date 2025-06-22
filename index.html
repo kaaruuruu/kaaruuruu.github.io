@@ -2,66 +2,68 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🌸 작은 게시판 🌸</title>
   <style>
     body {
-      font-family: sans-serif;
-      background-color: #f5efff;
+      font-family: 'Arial', sans-serif;
+      background-color: #f9f0ff;
+      color: #333;
       text-align: center;
+      padding: 30px;
     }
     h1 {
-      background-color: #d8b4f8;
-      padding: 1rem;
-      border-radius: 10px;
-      color: white;
+      color: #b672d1;
     }
     form {
-      margin: 2rem auto;
-      max-width: 400px;
-      background: white;
-      padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
     }
     input, textarea {
-      width: 100%;
-      margin-bottom: 1rem;
-      padding: 0.5rem;
+      width: 90%;
+      max-width: 400px;
+      margin-bottom: 10px;
+      padding: 10px;
       border: 1px solid #ccc;
-      border-radius: 5px;
+      border-radius: 8px;
+      font-size: 16px;
     }
     button {
-      background-color: #d8b4f8;
+      background-color: #d4a1f5;
       color: white;
+      padding: 10px 20px;
+      font-size: 16px;
       border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
     }
+    button:hover {
+      background-color: #c084eb;
+    }
     .post {
-      margin: 1rem auto;
-      max-width: 400px;
       background: white;
-      padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.05);
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin: 10px auto;
+      padding: 15px;
+      max-width: 500px;
       text-align: left;
     }
   </style>
 </head>
 <body>
   <h1>🌸 작은 게시판 🌸</h1>
-
+  
   <form id="postForm">
-    <input type="text" id="title" placeholder="제목을 입력하세요" required />
-    <textarea id="content" placeholder="무엇이든 적어보세요 💬" required></textarea>
+    <input type="text" id="title" placeholder="제목" required /><br />
+    <textarea id="content" rows="4" placeholder="내용" required></textarea><br />
     <button type="submit">글 올리기</button>
   </form>
 
-  <div id="postList"></div>
+  <div id="postList">
+    <!-- 게시글이 여기에 표시돼요 -->
+  </div>
 
-  <!-- Firebase -->
+  <!-- Firebase SDK 추가 -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 
@@ -75,14 +77,15 @@
       appId: "1:802939006936:web:b099f320d92e04415e8cad"
     };
 
+    // Firebase 초기화
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     const form = document.getElementById("postForm");
     const postList = document.getElementById("postList");
 
-    // 글 업로드
-    form.addEventListener("submit", async (e) => {
+    // 글 올리기 이벤트
+    form.addEventListener("submit", async function (e) {
       e.preventDefault();
       const title = document.getElementById("title").value.trim();
       const content = document.getElementById("content").value.trim();
@@ -91,23 +94,23 @@
         await db.collection("posts").add({
           title,
           content,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          timestamp: new Date()
         });
         form.reset();
       }
     });
 
-    // 글 불러오기
+    // 게시글 불러오기
     db.collection("posts")
       .orderBy("timestamp", "desc")
       .onSnapshot((snapshot) => {
         postList.innerHTML = "";
         snapshot.forEach((doc) => {
-          const post = doc.data();
-          const div = document.createElement("div");
-          div.className = "post";
-          div.innerHTML = `<h3>${post.title}</h3><p>${post.content}</p>`;
-          postList.appendChild(div);
+          const data = doc.data();
+          const post = document.createElement("div");
+          post.className = "post";
+          post.innerHTML = `<h3>${data.title}</h3><p>${data.content}</p>`;
+          postList.appendChild(post);
         });
       });
   </script>
