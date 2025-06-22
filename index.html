@@ -1,78 +1,57 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>🌸 작은 게시판 🌸</title>
   <style>
     body {
+      background-color: #f6f0fa;
       font-family: 'Arial', sans-serif;
-      background-color: #f9f0ff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      text-align: center;
       padding: 2rem;
     }
     h1 {
-      color: #c084fc;
+      color: #a85fa1;
     }
     form {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
       margin-bottom: 2rem;
-      width: 100%;
-      max-width: 500px;
     }
-    input, textarea {
-      width: 100%;
-      margin-bottom: 1rem;
+    input, textarea, button {
+      display: block;
+      margin: 0.5rem auto;
+      width: 80%;
+      max-width: 400px;
       padding: 0.7rem;
-      border: 1px solid #ddd;
       border-radius: 5px;
-    }
-    button {
-      background-color: #c084fc;
-      color: white;
-      padding: 0.7rem 1.2rem;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+      border: 1px solid #ccc;
     }
     .post {
-      background: white;
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      margin: 1rem auto;
+      max-width: 400px;
       padding: 1rem;
       border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
-      margin-bottom: 1rem;
-      max-width: 500px;
-      width: 100%;
-    }
-    .post h3 {
-      margin: 0 0 0.5rem 0;
-    }
-    .post small {
-      color: #666;
-      font-size: 0.8rem;
+      text-align: left;
     }
   </style>
 </head>
 <body>
   <h1>🌸 작은 게시판 🌸</h1>
+
   <form id="postForm">
-    <input type="text" id="title" placeholder="제목을 입력하세요" required />
-    <textarea id="content" placeholder="내용을 입력하세요" required></textarea>
+    <input type="text" id="title" placeholder="제목" required />
+    <textarea id="content" placeholder="내용" required></textarea>
     <button type="submit">글 올리기</button>
   </form>
+
   <div id="postList"></div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script> 
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 
   <script>
-    // Firebase 설정
     const firebaseConfig = {
       apiKey: "AIzaSyCQUVnFm1GC0dJtkoPy-FJW2ACr5myfTU",
       authDomain: "kaaru-board.firebaseapp.com",
@@ -82,41 +61,40 @@
       appId: "1:802939006936:web:b099f320d92e04415e8cad"
     };
 
-    // Firebase 초기화
-    const app = firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const postForm = document.getElementById("postForm");
+    const form = document.getElementById("postForm");
     const postList = document.getElementById("postList");
 
-    // 글 등록
-    postForm.addEventListener("submit", async (e) => {
+    form.addEventListener("submit", async function (e) {
       e.preventDefault();
       const title = document.getElementById("title").value.trim();
       const content = document.getElementById("content").value.trim();
-
       if (title && content) {
         await db.collection("posts").add({
           title,
           content,
-          timestamp: new Date()
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-        postForm.reset();
+        form.reset();
+        loadPosts(); // 새로고침 없이도 반영
       }
     });
 
-    // 글 불러오기
-    db.collection("posts").orderBy("timestamp", "desc")
-      .onSnapshot((snapshot) => {
-        postList.innerHTML = "";
-        snapshot.forEach((doc) => {
-          const post = doc.data();
-          const div = document.createElement("div");
-          div.className = "post";
-          div.innerHTML = `<h3>${post.title}</h3><p>${post.content}</p><small>${new Date(post.timestamp.toDate()).toLocaleString()}</small>`;
-          postList.appendChild(div);
-        });
+    async function loadPosts() {
+      const snapshot = await db.collection("posts").orderBy("timestamp", "desc").get();
+      postList.innerHTML = "";
+      snapshot.forEach(doc => {
+        const post = doc.data();
+        const postDiv = document.createElement("div");
+        postDiv.className = "post";
+        postDiv.innerHTML = `<h3>${post.title}</h3><p>${post.content}</p>`;
+        postList.appendChild(postDiv);
       });
+    }
+
+    loadPosts();
   </script>
 </body>
 </html>
