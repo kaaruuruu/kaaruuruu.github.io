@@ -1,79 +1,107 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>🌸 작은 게시판</title>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>작은 게시판</title>
   <style>
-    body { font-family: 'Arial'; padding: 20px; background: lavenderblush; }
-    input, textarea { width: 100%; margin-bottom: 10px; }
-    .post { border: 1px solid #aaa; padding: 10px; margin-bottom: 10px; background: white; }
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f6f6f6;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    form {
+      margin-bottom: 20px;
+    }
+    input, textarea, button {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 1em;
+    }
+    .post {
+      background-color: #fff;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px #ccc;
+    }
+    .timestamp {
+      font-size: 0.8em;
+      color: gray;
+    }
   </style>
 </head>
 <body>
-  <h1>🌸 작은 게시판</h1>
-  <input type="text" id="title" placeholder="제목을 입력하세요"><br>
-  <textarea id="content" rows="4" placeholder="내용을 입력하세요"></textarea><br>
-  <button onclick="addPost()">게시하기</button>
+  <h1>작은 게시판</h1>
+  
+  <form id="postForm">
+    <input type="text" id="title" placeholder="제목" required />
+    <textarea id="content" placeholder="내용" required></textarea>
+    <button type="submit">작성하기</button>
+  </form>
 
-  <hr>
-  <div id="postList"></div>
+  <div id="posts"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 
   <script>
+    // 🔧 Firebase 설정: 여기를 본인의 프로젝트 설정으로 바꿔주세요
     const firebaseConfig = {
-      apiKey: "AIzaSyCQUVnFm1GCGdJtk0Py-FJW2AAcr5myfTU",
-      authDomain: "kaaru-board.firebaseapp.com",
-      projectId: "kaaru-board",
-      storageBucket: "kaaru-board.appspot.com",
-      messagingSenderId: "802939006936",
-      appId: "1:802939006936:web:8bb859c43d24ee8858cad"
+      apiKey: "API_KEY",
+      authDomain: "PROJECT_ID.firebaseapp.com",
+      projectId: "PROJECT_ID",
+      storageBucket: "PROJECT_ID.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
     };
 
-    // Firebase 초기화
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 게시물 추가 함수
-    function addPost() {
-      const title = document.getElementById("title").value;
-      const content = document.getElementById("content").value;
-      const timestamp = new Date();
+    const postForm = document.getElementById('postForm');
+    const postsDiv = document.getElementById('posts');
 
-      if (title.trim() === "" || content.trim() === "") {
-        alert("제목과 내용을 모두 입력해주세요.");
-        return;
-      }
+    postForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('title').value.trim();
+      const content = document.getElementById('content').value.trim();
 
-      db.collection("posts").add({
-        title: title,
-        content: content,
-        timestamp: firebase.firestore.Timestamp.fromDate(timestamp)
-      }).then(() => {
-        alert("게시물이 등록되었어요!");
-        loadPosts();
-        document.getElementById("title").value = "";
-        document.getElementById("content").value = "";
+      if (!title || !content) return;
+
+      await db.collection('posts').add({
+        title,
+        content,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      postForm.reset();
+      loadPosts();
+    });
+
+    async function loadPosts() {
+      postsDiv.innerHTML = '';
+      const snapshot = await db.collection('posts').orderBy('timestamp', 'desc').get();
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const date = data.timestamp?.toDate()?.toLocaleString() || '시간 정보 없음';
+        postsDiv.innerHTML += `
+          <div class="post">
+            <strong>${data.title}</strong>
+            <p>${data.content}</p>
+            <div class="timestamp">${date}</div>
+          </div>
+        `;
       });
     }
 
-    // 게시물 불러오기 함수
-    function loadPosts() {
-      db.collection("posts").orderBy("timestamp", "desc").get().then((querySnapshot) => {
-        const postList = document.getElementById("postList");
-        postList.innerHTML = "";
-        querySnapshot.forEach((doc) => {
-          const post = doc.data();
-          const postElement = document.createElement("div");
-          postElement.classList.add("post");
-          postElement.innerHTML = `<h3>${post.title}</h3><p>${post.content}</p><small>${post.timestamp.toDate().toLocaleString()}</small>`;
-          postList.appendChild(postElement);
-        });
-      });
-    }
-
-    // 페이지 로딩 시 게시물 가져오기
-    window.onload = loadPosts;
+    loadPosts();
   </script>
 </body>
 </html>
