@@ -1,0 +1,133 @@
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>작은 게시판</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f3fa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #d6c3f7;
+      padding: 20px;
+      text-align: center;
+      color: white;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2em;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(150, 120, 200, 0.1);
+    }
+
+    .intro {
+      font-size: 1.1em;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    form {
+      margin-bottom: 40px;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      resize: vertical;
+      height: 100px;
+    }
+
+    button {
+      margin-top: 10px;
+      background-color: #b999f4;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #a683e0;
+    }
+
+    .post-list {
+      margin-top: 20px;
+    }
+
+    .post {
+      border-top: 1px solid #eee;
+      padding: 10px 0;
+    }
+
+    .post:last-child {
+      border-bottom: 1px solid #eee;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌸 작은 게시판 🌸</h1>
+  </header>
+
+  <div class="container">
+    <p class="intro">누구나 가볍게 글을 남길 수 있는 공간입니다 💜</p>
+
+    <form id="postForm">
+      <label for="title">제목</label>
+      <input type="text" id="title" placeholder="제목을 입력하세요" required>
+
+      <label for="content">내용</label>
+      <textarea id="content" placeholder="무엇이든 적어보세요 💬" required></textarea>
+
+      <button type="submit">글 올리기</button>
+    </form>
+
+    <div class="post-list" id="postList">
+      <!-- 여기에 게시글이 추가됩니다 -->
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("postForm");
+    const postList = document.getElementById("postList");
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim();
+      if (title && content) {
+        const post = document.createElement("div");
+        post.className = "post";
+        post.innerHTML = `<h3>${title}</h3><p>${content}</p>`;
+        postList.prepend(post);
+        form.reset();
+      }
+    });
+  </script>
+</body>
+</html>
