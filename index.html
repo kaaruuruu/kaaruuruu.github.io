@@ -1,118 +1,118 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>🌸 작은 게시판 🌸</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
-      background-color: #f9f0ff;
-      color: #333;
-      text-align: center;
-      padding: 30px;
+      background-color: #f8f0fc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
     }
     h1 {
-      color: #b672d1;
+      color: #b264cf;
     }
     form {
-      margin-bottom: 30px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     input, textarea {
-      width: 90%;
-      max-width: 400px;
-      margin-bottom: 10px;
+      display: block;
+      margin: 10px 0;
       padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
+      width: 300px;
     }
     button {
-      background-color: #d4a1f5;
-      color: white;
-      padding: 10px 20px;
-      font-size: 16px;
+      background-color: #d2a8e5;
       border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #c084eb;
+      padding: 10px 20px;
+      color: white;
+      font-weight: bold;
+      border-radius: 5px;
     }
     .post {
-      background: white;
-      border: 1px solid #ddd;
+      background: #fff;
+      margin: 10px 0;
+      padding: 10px;
       border-radius: 8px;
-      margin: 10px auto;
-      padding: 15px;
-      max-width: 500px;
-      text-align: left;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+      width: 320px;
     }
   </style>
 </head>
 <body>
-  <h1>🌸 작은 게시판 🌸</h1>
-  
-  <form id="postForm">
-    <input type="text" id="title" placeholder="제목" required /><br />
-    <textarea id="content" rows="4" placeholder="내용" required></textarea><br />
-    <button type="submit">글 올리기</button>
-  </form>
 
-  <div id="postList">
-    <!-- 게시글이 여기에 표시돼요 -->
-  </div>
+<h1>🌸 작은 게시판 🌸</h1>
 
-  <!-- Firebase SDK 추가 -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+<form id="postForm">
+  <input type="text" id="title" placeholder="제목을 입력하세요" required>
+  <textarea id="content" placeholder="내용을 입력하세요" required></textarea>
+  <button type="submit">글 올리기</button>
+</form>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCQUVnFm1GC0dJtkoPy-FJW2ACr5myfTU",
-      authDomain: "kaaru-board.firebaseapp.com",
-      projectId: "kaaru-board",
-      storageBucket: "kaaru-board.appspot.com",
-      messagingSenderId: "802939006936",
-      appId: "1:802939006936:web:b099f320d92e04415e8cad"
-    };
+<div id="postList"></div>
 
-    // Firebase 초기화
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 
-    const form = document.getElementById("postForm");
-    const postList = document.getElementById("postList");
+<script>
+  // Firebase 설정
+  const firebaseConfig = {
+    apiKey: "AIzaSyCQUVnFm1GC0dJtkoPy-FJW2ACr5myfTU",
+    authDomain: "kaaru-board.firebaseapp.com",
+    projectId: "kaaru-board",
+    storageBucket: "kaaru-board.appspot.com",
+    messagingSenderId: "802939006936",
+    appId: "1:802939006936:web:b099f320d92e04415e8cad"
+  };
 
-    // 글 올리기 이벤트
-    form.addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const title = document.getElementById("title").value.trim();
-      const content = document.getElementById("content").value.trim();
+  // 초기화
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-      if (title && content) {
-        await db.collection("posts").add({
-          title,
-          content,
-          timestamp: new Date()
-        });
-        form.reset();
-      }
-    });
+  const form = document.getElementById("postForm");
+  const postList = document.getElementById("postList");
 
-    // 게시글 불러오기
-    db.collection("posts")
-      .orderBy("timestamp", "desc")
-      .onSnapshot((snapshot) => {
-        postList.innerHTML = "";
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          const post = document.createElement("div");
-          post.className = "post";
-          post.innerHTML = `<h3>${data.title}</h3><p>${data.content}</p>`;
-          postList.appendChild(post);
-        });
+  // 글 올리기
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const title = document.getElementById("title").value.trim();
+    const content = document.getElementById("content").value.trim();
+
+    if (title && content) {
+      await db.collection("posts").add({
+        title,
+        content,
+        timestamp: new Date()
       });
-  </script>
+      form.reset();
+      loadPosts();
+    }
+  });
+
+  // 글 불러오기
+  async function loadPosts() {
+    postList.innerHTML = "";
+    const snapshot = await db.collection("posts").orderBy("timestamp", "desc").get();
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const post = document.createElement("div");
+      post.className = "post";
+      post.innerHTML = `<h3>${data.title}</h3><p>${data.content}</p>`;
+      postList.appendChild(post);
+    });
+  }
+
+  // 페이지 로드 시 글 불러오기
+  window.onload = loadPosts;
+</script>
+
 </body>
 </html>
